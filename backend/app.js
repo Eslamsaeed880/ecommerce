@@ -3,6 +3,7 @@ import cors from 'cors';
 import 'dotenv/config';
 import connectDb from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
+import authRouter from './routes/auth.js'
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -11,6 +12,8 @@ connectCloudinary();
 
 app.use(express.json());
 app.use(cors());
+
+app.use('/auth', authRouter);
 
 app.get('/', (req, res) => {
     res.status(200).json({message: 'API is working'});
