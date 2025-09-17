@@ -27,6 +27,10 @@ const productSchema = new Schema({
     },
     sizes: {
         type: Array
+    },
+    userId: {
+        type: mongoose.Types.ObjectId,
+        required: false
     }
 });
 

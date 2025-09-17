@@ -3,7 +3,6 @@ import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 
 import jwt from "jsonwebtoken";
-import user from '../models/user.js';
 
 const postLogin = async (req, res, next) => {
     try {
