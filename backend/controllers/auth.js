@@ -3,10 +3,7 @@ import User from '../models/user.js';
 import bcrypt from 'bcrypt';
 
 import jwt from "jsonwebtoken";
-
-const createToken = (id) => {
-    return jwt.sign({id}, process.env.JWT_SECRET_KEY);
-}
+import user from '../models/user.js';
 
 const postLogin = async (req, res, next) => {
     try {
@@ -23,8 +20,16 @@ const postLogin = async (req, res, next) => {
             return res.status(400).json({message: "Invalid Inputs"});
         }
 
-        const token = createToken(userExists._id);
-        res.json({message: "You logged in successfully.", token});
+        const token = jwt.sign(
+            {
+                userId: userExists._id.toString(), 
+                email: userExists.email
+            },
+            process.env.JWT_SECRET_KEY,
+            { expiresIn: "1h" }
+        );
+
+        res.json({message: "You logged in successfully.", token, userId: userExists._id.toString()});
 
     } catch (err) {
         console.log(err);
@@ -47,12 +52,10 @@ const postSignup = async (req, res, next) => {
 
             await user.save();
 
-            const token = createToken(user._id);
-
-            
-
-            return res.status(200).json({ message: "User Created successfully", user: user, token: token });
+            return res.status(200).json({ message: "User Created successfully", user: user});
         }
+
+        res.status(400).json({message: "User already exists"});
 
     } catch (err) {
         console.log(err);

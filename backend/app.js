@@ -12,6 +12,10 @@ connectCloudinary();
 
 app.use(express.json());
 app.use(cors());
+app.use(async (req, res, next) => {
+    res.setHeader('Authorization', 'Content-Type');
+    next();
+});
 
 app.use('/auth', authRouter);
 
