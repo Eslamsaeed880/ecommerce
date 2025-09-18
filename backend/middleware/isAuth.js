@@ -1,6 +1,6 @@
 import jwt from 'jsonwebtoken';
 
-const isAuth = (req, res, next) => {
+const isAuth = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         if(!authHeader) {
@@ -23,6 +23,7 @@ const isAuth = (req, res, next) => {
         console.log(decodedToken);
         req.userId = decodedToken.userId;
         next();
+        
     } catch (err) {
         err.statusCode = 500;
         throw err;

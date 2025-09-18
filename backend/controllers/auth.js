@@ -62,4 +62,4 @@ const postSignup = async (req, res, next) => {
     }
 }
 
-export default {postLogin, postSignup};
+export default { postLogin, postSignup };

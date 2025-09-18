@@ -4,7 +4,8 @@ import 'dotenv/config';
 import connectDb from './config/mongodb.js';
 import connectCloudinary from './config/cloudinary.js';
 import authRouter from './routes/auth.js';
-import productRouter from './routes/products.js';
+import productRouter from './routes/product.js';
+import adminRouter from './routes/admin.js';
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -19,6 +20,7 @@ app.use(async (req, res, next) => {
 });
 
 app.use('/auth', express.json(),authRouter);
+app.use('/admin', adminRouter)
 app.use(productRouter);
 
 app.get('/', (req, res) => {
