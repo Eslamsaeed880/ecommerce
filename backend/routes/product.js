@@ -17,7 +17,9 @@ router.post('/cart', isAuth, productController.addToCart);
 router.delete('/cart/:cartId', isAuth, productController.deleteItemFromCart);
 
 // change quantity
+router.put('/cart/:cartId', isAuth, productController.putUpdateItemFromCart);
 
 // add order
+
 
 export default router;  
