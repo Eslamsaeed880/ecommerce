@@ -14,6 +14,7 @@ router.get('/product/:productId', productController.getProduct);
 router.post('/cart', isAuth, productController.addToCart);
 
 // delete cart
+router.delete('/cart/:cartId', isAuth, productController.deleteItemFromCart);
 
 // change quantity
 

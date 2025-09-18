@@ -69,4 +69,30 @@ const addToCart = async (req, res, next) => {
     }
 }
 
-export default { getProducts, getProduct, addToCart };
+const deleteItemFromCart = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const cartId = req.params.cartId;
+    
+        const user = await User.findById(userId);
+
+        if(!user) {
+            return res.status(500).json({message: "Not Authorized"});
+        }
+
+        let cart = user.cart;
+    
+        cart = cart.filter(item => item._id.toString() !== cartId);
+    
+        user.cart = cart;
+    
+        await user.save();
+        return res.status(200).json({message: "Cart item deleted successfully.", user});
+        
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: 'deleteItemFromCart:', err});
+    }
+}
+
+export default { getProducts, getProduct, addToCart, deleteItemFromCart };
