@@ -19,12 +19,19 @@ const userSchema = new Schema({
         required: true,
         default: 'user'
     },
-    cartId: [
-        {
-            type: mongoose.Types.ObjectId,
-            default: {}
+    cart: [
+    {
+        productId: {
+        type: mongoose.Types.ObjectId,
+        ref: "Product",
+        required: true
+        },
+        quantity: {
+        type: Number,
+        default: 1
         }
-    ]
+    }
+]
 }, {minimize: false});
 
 const user = mongoose.model('User', userSchema);

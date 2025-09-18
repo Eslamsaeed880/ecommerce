@@ -21,7 +21,7 @@ app.use(async (req, res, next) => {
 
 app.use('/auth', express.json(),authRouter);
 app.use('/admin', adminRouter)
-app.use(productRouter);
+app.use(express.json(), productRouter);
 
 app.get('/', (req, res) => {
     res.status(200).json({message: 'API is working'});
