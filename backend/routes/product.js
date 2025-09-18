@@ -10,16 +10,13 @@ router.get('/', productController.getProducts);
 
 router.get('/product/:productId', productController.getProduct);
 
-// add to cart
-router.post('/cart', isAuth, productController.addToCart);
-
-// delete cart
-router.delete('/cart/:cartId', isAuth, productController.deleteItemFromCart);
-
-// change quantity
-router.put('/cart/:cartId', isAuth, productController.putUpdateItemFromCart);
-
 // add order
+
+// delete item from order
+
+// update item from order
+
+// payment process
 
 
 export default router;  
