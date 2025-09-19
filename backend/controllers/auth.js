@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 
 import sendgridTransport from 'nodemailer-sendgrid-transport';
+import { validationResult } from 'express-validator';
 
 const transporter = nodemailer.createTransport(sendgridTransport({
   auth: {
@@ -16,18 +17,13 @@ const transporter = nodemailer.createTransport(sendgridTransport({
 
 const postLogin = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(422).json({message: errors.array()});
+        }
+
         const { email, password } = req.body;
         const userExists = await User.findOne({email});
-
-        if(!userExists) {
-            return res.status(400).json({message: "This user doesn't exist"});
-        } 
-
-        const match = await bcrypt.compare(password, userExists.password);
-
-        if(!match) {
-            return res.status(400).json({message: "Invalid Inputs"});
-        }
 
         const token = jwt.sign(
             {
@@ -48,6 +44,12 @@ const postLogin = async (req, res, next) => {
 
 const postSignup = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+
+        if(!errors.isEmpty()) {
+            return res.status(400).json({message: errors.array()});
+        }
+        
         const { firstName, lastName, email, password } = req.body;
 
         const userExists = await User.findOne({ email: email });
@@ -74,8 +76,6 @@ const postSignup = async (req, res, next) => {
 
             return res.status(200).json({ message: "User Created successfully", user: user});
         }
-
-        res.status(400).json({message: "User already exists"});
 
     } catch (err) {
         console.log(err);

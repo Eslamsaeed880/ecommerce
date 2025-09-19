@@ -1,10 +1,13 @@
 import express from 'express';
+
 import authController from '../controllers/auth.js';
+
+import { loginValidation, signupValidation } from '../middleware/authValidation.js';
 
 const router = express.Router();
 
-router.post('/login', authController.postLogin);
+router.post('/login', loginValidation, authController.postLogin);
 
-router.post('/signup', authController.postSignup);
+router.post('/signup', signupValidation, authController.postSignup);
 
 export default router;
