@@ -12,7 +12,14 @@ const isAuth = async (req, res, next) => {
         const token = authHeader.split(' ')[1];
         let decodedToken;
         
-        decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        try {
+            decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
+        } catch (err) {
+            if(err.name === 'TokenExpiredError') {
+                return res.status(401).json({message: 'Session expired. Please login again.'});
+            }
+            return res.status(401).json({ message: 'Not Authorized.' });
+        }
         
         if(!decodedToken) {
             const error = new Error('Not Authorized.');
@@ -20,7 +27,6 @@ const isAuth = async (req, res, next) => {
             throw error;
         }
         
-        console.log(decodedToken);
         req.userId = decodedToken.userId;
         next();
         

@@ -64,16 +64,21 @@ const deleteItemFromCart = async (req, res, next) => {
         const user = await User.findById(userId);
 
         if(!user) {
-            return res.status(500).json({message: "Not Authorized"});
+            return res.status(400).json({message: "Not Authorized"});
         }
 
         let cart = user.cart;
+
+        if(cart.length === 0) {
+            return res.status(400).json({message: "Cart is empty."});
+        }
     
         cart = cart.filter(item => item._id.toString() !== cartId);
     
         user.cart = cart;
     
         await user.save();
+
         return res.status(200).json({message: "Cart item deleted successfully.", cart: user.cart});
 
     } catch (err) {
@@ -102,7 +107,7 @@ const putUpdateItemFromCart = async (req, res, next) => {
         const cartIndex = cart.findIndex(item => item._id.toString() === cartId);
 
         if(cartIndex === -1) {
-            return res.status(500).json({message: "Cart item not found."});
+            return res.status(400).json({message: "Cart item not found."});
         } 
 
         cart[cartIndex].quantity = updatedQuantity;

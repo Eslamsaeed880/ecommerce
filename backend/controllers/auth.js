@@ -1,8 +1,18 @@
 import User from '../models/user.js';
 
+import nodemailer from 'nodemailer';
+
 import bcrypt from 'bcrypt';
 
 import jwt from "jsonwebtoken";
+
+import sendgridTransport from 'nodemailer-sendgrid-transport';
+
+const transporter = nodemailer.createTransport(sendgridTransport({
+  auth: {
+    api_key: process.env.NODEMAILER_API_KEY
+  }
+}));
 
 const postLogin = async (req, res, next) => {
     try {
@@ -50,6 +60,17 @@ const postSignup = async (req, res, next) => {
             const user = new User({ name, email, password: hashedPassword });
 
             await user.save();
+
+            await transporter.sendMail({
+                to: email,
+                from: process.env.EMAIL_SENDER,
+                subject: 'Signup succeeded!',
+                html: '<h1>You successfully signed up!</h1>'
+                }, (err, info) => {
+                if(!err) {
+                    console.log("Email Sent Successfully");
+                }
+            });
 
             return res.status(200).json({ message: "User Created successfully", user: user});
         }
