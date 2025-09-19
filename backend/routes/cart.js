@@ -6,11 +6,13 @@ import isAuth from '../middleware/isAuth.js';
 
 const router = express.Router();
 
-router.post('/cart', isAuth, cartController.addToCart);
+router.get('/', isAuth, cartController.getCart);
 
-router.delete('/cart/:cartId', isAuth, cartController.deleteItemFromCart);
+router.post('/', isAuth, cartController.addToCart);
 
-router.put('/cart/:cartId', isAuth, cartController.putUpdateItemFromCart);
+router.delete('/:cartId', isAuth, cartController.deleteItemFromCart);
+
+router.put('/:cartId', isAuth, cartController.putUpdateItemFromCart);
 
 
 export default router;  

@@ -31,6 +31,11 @@ const productSchema = new Schema({
     userId: {
         type: mongoose.Types.ObjectId,
         required: false
+    },
+    date: {
+        type: Date,
+        required: true,
+        default: Date.now()
     }
 });
 
