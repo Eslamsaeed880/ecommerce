@@ -9,6 +9,7 @@ import adminRouter from './routes/admin.js';
 import cartRouter from './routes/cart.js';
 import orderRouter from './routes/order.js';
 import passport from './middleware/googleAuth.js';
+import reviewRouter from './routes/review.js';
 
 
 const app = express();
@@ -26,6 +27,7 @@ app.use(async (req, res, next) => {
 app.use('/api/auth', express.json(), authRouter);
 app.use('/api/admin', adminRouter)
 app.use('/api/cart', express.json(), cartRouter);
+app.use('/api/review', express.json(), reviewRouter)
 app.use('/api', express.json(), orderRouter);
 app.use('/api', productRouter);
 
