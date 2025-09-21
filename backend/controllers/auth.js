@@ -15,6 +15,8 @@ const transporter = nodemailer.createTransport(sendgridTransport({
   }
 }));
 
+
+
 const postLogin = async (req, res, next) => {
     try {
         const errors = validationResult(req);
@@ -27,8 +29,7 @@ const postLogin = async (req, res, next) => {
 
         const token = jwt.sign(
             {
-                userId: userExists._id.toString(), 
-                email: userExists.email
+                userId: userExists._id.toString()
             },
             process.env.JWT_SECRET_KEY,
             { expiresIn: "1h" }

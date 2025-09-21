@@ -8,14 +8,16 @@ import productRouter from './routes/product.js';
 import adminRouter from './routes/admin.js';
 import cartRouter from './routes/cart.js';
 import orderRouter from './routes/order.js';
+import passport from './middleware/googleAuth.js';
+
 
 const app = express();
 const port = process.env.PORT || 4000;
 connectDb();
 connectCloudinary();
 
-// app.use(express.json());
 app.use(cors());
+app.use(passport.initialize());
 app.use(async (req, res, next) => {
     res.setHeader('Authorization', 'Content-Type');
     next();
