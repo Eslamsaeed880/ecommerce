@@ -21,6 +21,7 @@ passport.use(new GoogleStrategy({
                 name: profile.displayName,
                 email: profile.emails[0].value,
                 password: await bcrypt.hash(process.env.BASIC_PASSWORD, saltRounds), 
+                authProvider: 'google'
             });
             await user.save();
         }

@@ -4,17 +4,24 @@ import bcrypt from 'bcrypt';
 
 export const loginValidation = [
     body('email')
+        .normalizeEmail()
         .custom(async (value) => {
             const user = await User.findOne({ email: value });
-            if (!user) throw new Error("Invalid user.");
+            if (!user) {
+                throw new Error("Invalid user.");
+            }
         }),
     body('password')
         .custom(async (value, { req }) => {
             const user = await User.findOne({ email: req.body.email });
-            if (!user) throw new Error("Invalid user.");
+            if (!user) {
+                throw new Error("Invalid user.");
+            }
             const match = await bcrypt.compare(value, user.password);
-            if (!match) throw new Error("Invalid user.");
-        })
+            if (!match) {
+                throw new Error("Invalid user.");
+            }
+        })  
 ];
 
 export const signupValidation = [

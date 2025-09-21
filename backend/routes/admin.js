@@ -41,6 +41,4 @@ router.get('/product/:productId', adminAuth, adminController.getProduct);
 
 router.get('/', adminAuth, adminController.getProducts);
 
-// router.use('/', productRoutes);
-
 export default router;
