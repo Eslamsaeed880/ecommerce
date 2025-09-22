@@ -14,13 +14,21 @@ passport.use(new GoogleStrategy({
         const saltRounds = parseInt(process.env.SALT_ROUNDS);
 
         if (!user) {
-            user = new User({
-                name: profile.displayName,
-                email: profile.emails[0].value,
-                password: await bcrypt.hash(process.env.BASIC_PASSWORD, saltRounds), 
-                authProvider: 'google'
-            });
-            await user.save();
+          user = new User({
+            name: profile.displayName,
+            email: profile.emails[0].value,
+            password: await bcrypt.hash(process.env.BASIC_PASSWORD, saltRounds), 
+            authProvider: 'google'
+          });
+          await user.save();
+
+          const defaultWishList = new WishList({
+            name: 'Default',
+            userId: user._id,
+            description: '',
+            products: []
+          });
+          await defaultWishList.save();
         }
 
         return done(null, user);

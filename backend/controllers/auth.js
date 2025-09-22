@@ -4,6 +4,7 @@ import bcrypt from 'bcrypt';
 import jwt from "jsonwebtoken";
 import sendgridTransport from 'nodemailer-sendgrid-transport';
 import { validationResult } from 'express-validator';
+import WishList from '../models/wishList.js';
 
 const transporter = nodemailer.createTransport(sendgridTransport({
   auth: {
@@ -70,6 +71,13 @@ const postSignup = async (req, res, next) => {
                     console.log("Email Sent Successfully");
                 }
             });
+
+            const defaultWishList = new WishList({
+                name: 'Default',
+                userId: user._id,
+                products: []
+            });
+            await defaultWishList.save();
 
             return res.status(200).json({ message: "User Created successfully", user: user});
         }

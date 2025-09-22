@@ -35,6 +35,8 @@ router.put(
 
 router.get('/product/:productId', adminAuth, adminController.getProduct);
 
+router.get('/wishlists', adminAuth, adminController.getWishLists);
+
 router.get('/', adminAuth, adminController.getProducts);
 
 export default router;

@@ -1,5 +1,6 @@
 import Product  from '../models/product.js';
 import {v2 as cloudinary} from 'cloudinary';
+import WishList from '../models/wishList.js';
 
 const getProducts = async (req, res, next) => {
     try {
@@ -159,10 +160,19 @@ const deleteProduct = async (req, res, next) => {
         
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'deleteProduct: ' + err.message});
+        res.status(500).json({message: 'deleteProduct' ,error: err.message});
     }
 }
 
+const getWishLists = async (req, res, next) => {
+    try {
+        const wishLists = await WishList.find();
+    
+        return res.status(200).json({message: "Get wishlists successfully", wishLists});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: 'getWishLists' ,error: err.message});
+    }
+}
 
-
-export default { postAddProduct, putUpdateProduct, deleteProduct, getProducts, getProduct };
+export default { postAddProduct, putUpdateProduct, deleteProduct, getProducts, getProduct, getWishLists };

@@ -7,6 +7,7 @@ import authRouter from './routes/auth.js';
 import productRouter from './routes/product.js';
 import adminRouter from './routes/admin.js';
 import cartRouter from './routes/cart.js';
+import wishlistRouter from './routes/wishList.js';
 import orderRouter from './routes/order.js';
 import passport from './middleware/googleAuth.js';
 import reviewRouter from './routes/review.js';
@@ -29,6 +30,7 @@ app.use('/api/auth', express.json(), authRouter);
 app.use('/api/admin', adminRouter)
 app.use('/api/cart', express.json(), cartRouter);
 app.use('/api/review', express.json(), reviewRouter)
+app.use('/api/wishlist', express.json(), wishlistRouter);
 app.use('/api', express.json(), orderRouter);
 app.use('/api', productRouter);
 

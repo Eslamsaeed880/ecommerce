@@ -14,6 +14,29 @@ const userSchema = new Schema({
         type: String,
         required: true
     },
+    phone: {
+        type: String,
+        validate: {
+            validator: function(v) {
+                return /^(\+?\d{10,15})$/.test(v);
+            },
+            message: props => `${props.value} is not a valid phone number!`
+        },
+        required: false
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'femal'],
+        required: false
+    },
+    Nationality: {
+        type: String,
+        required: false
+    },
+    birthDay: {
+        type: Date,
+        required: false
+    },
     authProvider: {
         type: String,
         enum: ['local', 'google'],
@@ -39,7 +62,7 @@ const userSchema = new Schema({
             }
         }
     ],
-    date: {
+    createdAt: {
         type: Date,
         required: true,
         default: Date.now()
