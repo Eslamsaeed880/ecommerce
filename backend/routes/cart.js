@@ -1,10 +1,11 @@
 import express from 'express';
-
 import cartController from '../controllers/cart.js';    
-
 import isAuth from '../middleware/isAuth.js';
-
-import {addToCartValidator, deleteItemFromCartValidator, updateItemFromCartValidator} from '../middleware/cartValidation.js';
+import {
+    addToCartValidator, 
+    deleteItemFromCartValidator, 
+    updateItemFromCartValidator
+} from '../middleware/cartValidation.js';
 
 const router = express.Router();
 

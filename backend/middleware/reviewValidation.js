@@ -1,9 +1,6 @@
 import { body, param } from "express-validator";
-
 import Product from '../models/product.js';
-
 import Review from '../models/review.js';
-
 import User from '../models/user.js';
 
 

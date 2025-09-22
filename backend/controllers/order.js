@@ -116,7 +116,6 @@ const addOrderStripe = async (req, res, next) => {
             return res.status(400).json({message: "There's a problem in quantity of products in cart"});
         }
 
-
         const origin = req.headers.origin || `http://localhost:${process.env.PORT || 4000}`;
 
         const order = new Order({userId, address, paymentMethod, products: cart});

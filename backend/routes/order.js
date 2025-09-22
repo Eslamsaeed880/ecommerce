@@ -1,9 +1,6 @@
 import express from 'express';
-
 import orderController from '../controllers/order.js';
-
 import adminAuth from '../middleware/adminAuth.js';
-
 import isAuth from '../middleware/isAuth.js';
 
 const router = express.Router();

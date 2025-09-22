@@ -1,11 +1,7 @@
 import User from '../models/user.js';
-
 import nodemailer from 'nodemailer';
-
 import bcrypt from 'bcrypt';
-
 import jwt from "jsonwebtoken";
-
 import sendgridTransport from 'nodemailer-sendgrid-transport';
 import { validationResult } from 'express-validator';
 

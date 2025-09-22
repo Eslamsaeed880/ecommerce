@@ -1,11 +1,7 @@
 import express from 'express';
-
 import adminAuth from '../middleware/adminAuth.js';
-
 import adminController from '../controllers/admin.js';
-
 import productRoutes from './product.js';
-
 import upload from '../middleware/multer.js';
 
 

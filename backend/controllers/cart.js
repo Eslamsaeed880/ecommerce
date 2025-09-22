@@ -1,5 +1,4 @@
 import User from '../models/user.js';
-
 import {validationResult} from 'express-validator';
 
 const getCart = async (req, res, next) => {
