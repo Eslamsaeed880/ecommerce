@@ -53,7 +53,8 @@ const postAddProduct = async (req, res, next) => {
             category, 
             subCategory, 
             sizes: JSON.parse(sizes), 
-            userId: req.userId
+            userId: req.userId,
+            stock
         });
         await product.save();
 
@@ -87,7 +88,7 @@ const getProduct = async (req, res, next) => {
 
 const putUpdateProduct = async (req, res, next) => {
     try {
-        const { title, description, price, category, subCategory, sizes } = req.body;
+        const { title, description, price, category, subCategory, sizes, stock } = req.body;
         const productId = req.params.productId;
 
         if (!req.files) {
@@ -126,6 +127,7 @@ const putUpdateProduct = async (req, res, next) => {
         product.category = category;
         product.subCategory = subCategory;
         product.sizes = JSON.parse(sizes);
+        product.stock = stock;
 
         await product.save();
 

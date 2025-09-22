@@ -32,6 +32,11 @@ const productSchema = new Schema({
         type: mongoose.Types.ObjectId,
         required: false
     },
+    stock: {
+        type: Number,
+        required: true,
+        min: 0
+    },
     date: {
         type: Date,
         required: true,
