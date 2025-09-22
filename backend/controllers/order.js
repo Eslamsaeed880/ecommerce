@@ -1,11 +1,19 @@
-import order from '../models/order.js';
 import Order from '../models/order.js';
 import User from '../models/user.js';
 import Stripe from 'stripe';
+import Product from '../models/product.js';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const currency = 'usd';
 const deliveryCharges = 10;
+
+function getOutOfStockItems(cart) {
+    return cart.filter(item => {
+        const stock = +item.productId.stock;
+        const quantity = +item.quantity;
+        return quantity >= stock;
+    });
+}
 
 const getOrders = async (req, res, next) => {
     try {
@@ -44,12 +52,18 @@ const addOrder = async (req, res, next) => {
         
         const userId = req.userId;
         
-        const user = await User.findById(userId);
+        const user = await User.findById(userId).populate('cart.productId');
         
         const cart = user.cart;
 
-        if(cart == []) {
+        if(cart.length === 0) {
             return res.status(400).json({message: "Cart is empty."});
+        }
+
+        const newCart = getOutOfStockItems(cart);
+
+        if(newCart.length !== cart.length) {
+            return res.status(400).json({message: "There's a problem in quantity of products in cart"});
         }
     
         user.cart = [];
@@ -59,6 +73,16 @@ const addOrder = async (req, res, next) => {
         const order = new Order({userId, address, paymentMethod, products: cart});
     
         await order.save();
+
+        for (const item of cart) {
+            const product = await Product.findById(item.productId._id || item.productId);
+            if (product) {
+                const currentStock = Number(product.stock) || 0;
+                const qty = Number(item.quantity) || 1;
+                product.stock = Math.max(0, currentStock - qty);
+                await product.save();
+            }
+        }
     
         return res.status(200).json({message: "Order placed successfully.", order});
 
@@ -85,6 +109,13 @@ const addOrderStripe = async (req, res, next) => {
         if(cart.length === 0) {
             return res.status(400).json({message: "Cart is empty."});
         }
+        
+        const newCart = getOutOfStockItems(cart);
+
+        if(newCart.length !== cart.length) {
+            return res.status(400).json({message: "There's a problem in quantity of products in cart"});
+        }
+
 
         const origin = req.headers.origin || `http://localhost:${process.env.PORT || 4000}`;
 
@@ -142,7 +173,16 @@ const verifyStripe = async (req, res, next) => {
     try {
         if (success === "true") {
             const order = await Order.findByIdAndUpdate(orderId, { payment: true });
-            if (order) {
+            if (order && order.products && order.products.length > 0) {
+                for (const item of order.products) {
+                    const product = await Product.findById(item.productId._id || item.productId);
+                    if (product) {
+                        const currentStock = Number(product.stock) || 0;
+                        const qty = Number(item.quantity) || 1;
+                        product.stock = Math.max(0, currentStock - qty);
+                        await product.save();
+                    }
+                }
                 await User.findByIdAndUpdate(order.userId, { cart: [] });
             }
             res.json({ message: "Payment success.", order });
@@ -158,22 +198,34 @@ const verifyStripe = async (req, res, next) => {
 
 const updateOrderStatus = async (req, res, next) => {
     try {
+        const { status } = req.body;
+        const { orderId } = req.params;
 
-        const {status} = req.body;
-    
-        const {orderId} = req.params;
-    
         const order = await Order.findById(orderId);
-    
-        order.status = status;
-    
-        order.save();
+        if (!order) {
+            return res.status(404).json({ message: "Order not found." });
+        }
 
-        return res.status(200).json({message: "Status Updated successfully.", order});
+        if (status === 'refund') {
+            for (const item of order.products) {
+                const product = await Product.findById(item.productId._id || item.productId);
+                if (product) {
+                    const currentStock = Number(product.stock) || 0;
+                    const qty = Number(item.quantity) || 1;
+                    product.stock = currentStock + qty;
+                    await product.save();
+                }
+            }
+        }
+
+        order.status = status;
+        await order.save();
+
+        return res.status(200).json({ message: "Status Updated successfully.", order });
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: "updateOrderStatus:", err});
+        res.status(500).json({ message: "updateOrderStatus:", err });
     }
 }
 
