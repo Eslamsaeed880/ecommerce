@@ -15,24 +15,11 @@ function getOutOfStockItems(cart) {
     });
 }
 
-const getOrders = async (req, res, next) => {
-    try {
 
-        const orders = await Order.find();
-
-        return res.status(200).json({message: "Get orders successfully.", orders});
-
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({message: 'addOrder:', err});
-    }
-}
 
 const getUserOrders = async (req, res, next) => {
     try {
-
         const userId = req.userId;
-
         const orders = await Order.find({userId});
 
         return res.status(200).json({message: "Get orders successfully.", orders});
@@ -45,15 +32,10 @@ const getUserOrders = async (req, res, next) => {
 
 const addOrder = async (req, res, next) => {
     try {
-
         const {address} = req.body;
-
         const paymentMethod = "COD";
-        
         const userId = req.userId;
-        
         const user = await User.findById(userId).populate('cart.productId');
-        
         const cart = user.cart;
 
         if(cart.length === 0) {
@@ -71,7 +53,7 @@ const addOrder = async (req, res, next) => {
         await user.save();
 
         const order = new Order({userId, address, paymentMethod, products: cart});
-    
+
         await order.save();
 
         for (const item of cart) {
@@ -95,15 +77,10 @@ const addOrder = async (req, res, next) => {
 
 const addOrderStripe = async (req, res, next) => {
     try {
-
         const {address} = req.body;
-
         const paymentMethod = "Stripe";
-        
         const userId = req.userId;
-        
         const user = await User.findById(userId).populate('cart.productId');
-        
         const cart = user.cart;
 
         if(cart.length === 0) {
@@ -117,7 +94,6 @@ const addOrderStripe = async (req, res, next) => {
         }
 
         const origin = req.headers.origin || `http://localhost:${process.env.PORT || 4000}`;
-
         const order = new Order({userId, address, paymentMethod, products: cart});
     
         await order.save();
@@ -195,37 +171,9 @@ const verifyStripe = async (req, res, next) => {
     }
 }
 
-const updateOrderStatus = async (req, res, next) => {
-    try {
-        const { status } = req.body;
-        const { orderId } = req.params;
-
-        const order = await Order.findById(orderId);
-        if (!order) {
-            return res.status(404).json({ message: "Order not found." });
-        }
-
-        if (status === 'refund') {
-            for (const item of order.products) {
-                const product = await Product.findById(item.productId._id || item.productId);
-                if (product) {
-                    const currentStock = Number(product.stock) || 0;
-                    const qty = Number(item.quantity) || 1;
-                    product.stock = currentStock + qty;
-                    await product.save();
-                }
-            }
-        }
-
-        order.status = status;
-        await order.save();
-
-        return res.status(200).json({ message: "Status Updated successfully.", order });
-
-    } catch (err) {
-        console.log(err);
-        res.status(500).json({ message: "updateOrderStatus:", err });
-    }
-}
-
-export default {getOrders, getUserOrders, addOrder, addOrderStripe, updateOrderStatus, verifyStripe};
+export default {
+    getUserOrders, 
+    addOrder, 
+    addOrderStripe, 
+    verifyStripe
+};

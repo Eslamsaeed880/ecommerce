@@ -175,4 +175,59 @@ const getWishLists = async (req, res, next) => {
     }
 }
 
-export default { postAddProduct, putUpdateProduct, deleteProduct, getProducts, getProduct, getWishLists };
+const getOrders = async (req, res, next) => {
+    try {
+
+        const orders = await Order.find();
+
+        return res.status(200).json({message: "Get orders successfully.", orders});
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: 'addOrder:', err});
+    }
+}
+
+const updateOrderStatus = async (req, res, next) => {
+    try {
+        const { status } = req.body;
+        const { orderId } = req.params;
+
+        const order = await Order.findById(orderId);
+        if (!order) {
+            return res.status(404).json({ message: "Order not found." });
+        }
+
+        if (status === 'refund') {
+            for (const item of order.products) {
+                const product = await Product.findById(item.productId._id || item.productId);
+                if (product) {
+                    const currentStock = Number(product.stock) || 0;
+                    const qty = Number(item.quantity) || 1;
+                    product.stock = currentStock + qty;
+                    await product.save();
+                }
+            }
+        }
+
+        order.status = status;
+        await order.save();
+
+        return res.status(200).json({ message: "Status Updated successfully.", order });
+
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({ message: "updateOrderStatus:", err });
+    }
+}
+
+export default { 
+    postAddProduct, 
+    putUpdateProduct, 
+    deleteProduct, 
+    getProducts, 
+    getProduct, 
+    getWishLists, 
+    updateOrderStatus, 
+    getOrders 
+};

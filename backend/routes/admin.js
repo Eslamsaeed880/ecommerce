@@ -1,7 +1,6 @@
 import express from 'express';
 import adminAuth from '../middleware/adminAuth.js';
 import adminController from '../controllers/admin.js';
-import productRoutes from './product.js';
 import upload from '../middleware/multer.js';
 
 
@@ -36,6 +35,10 @@ router.put(
 router.get('/product/:productId', adminAuth, adminController.getProduct);
 
 router.get('/wishlists', adminAuth, adminController.getWishLists);
+
+router.get('/orders', adminAuth, adminController.getOrders);
+
+router.put('/order/status/:orderId', adminAuth, adminController.updateOrderStatus);
 
 router.get('/', adminAuth, adminController.getProducts);
 

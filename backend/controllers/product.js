@@ -5,15 +5,11 @@ const getProducts = async (req, res, next) => {
     try {
 
         const page = +req.query.page || 1;
-
         const limit = +req.query.limit || 10;
-
         const skip = (page - 1) * limit;
-
         const products = await Product.find()
             .skip(skip)
             .limit(limit);
-
         const total = await Product.countDocuments();
 
         return res.status(200).json({

@@ -49,7 +49,6 @@ const postSignup = async (req, res, next) => {
         }
         
         const { firstName, lastName, email, password } = req.body;
-
         const userExists = await User.findOne({ email: email });
 
         if (!userExists) {

@@ -68,7 +68,6 @@ const putWishList = async (req, res, next) => {
     try {
         const { wishListId, newWishListId, productId } = req.body;
         const userId = req.userId;
-
         const wishList = await WishList.findOne({ _id: wishListId, userId });
         const newWishList = await WishList.findOne({ _id: newWishListId, userId });
 
@@ -111,7 +110,6 @@ const deleteProductFromWishList = async (req, res, next) => {
         const {wishListId} = req.params;
         const {productId} = req.body;
         const userId = req.userId;
-
         const wishList = await WishList.findOne({_id: wishListId, userId});
         let products = wishList.products;
         products = products.filter(item => {

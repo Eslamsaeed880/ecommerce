@@ -3,7 +3,6 @@ import {validationResult} from 'express-validator';
 
 const getCart = async (req, res, next) => {
     try {
-
         const user = await User.findById(req.userId);
         const cart = user.cart;
 
@@ -27,7 +26,6 @@ const addToCart = async (req, res, next) => {
         const userId = req.userId;
         const user = await User.findById(userId);
         const productId = req.body.productId;
-
         const cart = user.cart || [];
         const cartIndex = cart.findIndex(item => item.productId == productId);
 
@@ -58,7 +56,6 @@ const deleteItemFromCart = async (req, res, next) => {
 
         const userId = req.userId;
         const cartId = req.params.cartId;
-    
         const user = await User.findById(userId);
 
         let cart = user.cart;
@@ -87,11 +84,8 @@ const putUpdateItemFromCart = async (req, res, next) => {
 
         const userId = req.userId;
         const cartId = req.params.cartId;
-        const updatedQuantity = req.body.quantity;
-
-    
+        const updatedQuantity = req.body.quantity;    
         const user = await User.findById(userId);
-
         const cart = user.cart || [];
         const cartIndex = cart.findIndex(item => item._id.toString() === cartId);
 
@@ -108,4 +102,9 @@ const putUpdateItemFromCart = async (req, res, next) => {
     }
 }
 
-export default {addToCart, deleteItemFromCart, putUpdateItemFromCart, getCart};
+export default {
+    addToCart,
+    deleteItemFromCart, 
+    putUpdateItemFromCart, 
+    getCart
+};
