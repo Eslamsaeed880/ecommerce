@@ -9,7 +9,7 @@ const reviewSchema = new Schema({
     },
     userId: {
         type: Schema.Types.ObjectId,
-        ref: 'Product',
+        ref: 'User',
         required: true
     },
     rating: {
@@ -25,7 +25,7 @@ const reviewSchema = new Schema({
         type: Date,
         default: Date.now
     }
-})
+}, {timestamps: true})
 
 const review = mongoose.model('Review', reviewSchema);
 export default review;

@@ -3,14 +3,28 @@ import Product  from '../models/product.js';
 
 const getProducts = async (req, res, next) => {
     try {
-
         const page = +req.query.page || 1;
         const limit = +req.query.limit || 10;
         const skip = (page - 1) * limit;
-        const products = await Product.find()
+        const { search } = req.body; 
+
+        let query = {};
+        if (search && search.trim()) {
+            query = {
+                $or: [
+                    { title: { $regex: search.trim(), $options: 'i' } },
+                    { category: { $regex: search.trim(), $options: 'i' } }
+                ]
+            };
+        }
+
+        const products = await Product.find(query)
+            .sort({ createdAt: -1 })
             .skip(skip)
-            .limit(limit);
-        const total = await Product.countDocuments();
+            .limit(limit)
+            .populate('userId', 'name');
+            
+        const total = await Product.countDocuments(query);
 
         return res.status(200).json({
             products,
@@ -19,12 +33,13 @@ const getProducts = async (req, res, next) => {
                 page,
                 limit,
                 totalPages: Math.ceil(total / limit)
-            }
+            },
+            search: search || null
         });
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'getProducts:', err});
+        res.status(500).json({ message: 'getProducts:', err });
     }
 }
 

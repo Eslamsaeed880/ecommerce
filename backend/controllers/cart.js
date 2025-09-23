@@ -1,16 +1,70 @@
 import User from '../models/user.js';
+import Product from '../models/product.js';
 import {validationResult} from 'express-validator';
 
 const getCart = async (req, res, next) => {
     try {
-        const user = await User.findById(req.userId);
-        const cart = user.cart;
+        const page = +req.query.page || 1;
+        const limit = +req.query.limit || 10;
+        const skip = (page - 1) * limit;
+        const search = req.query.search || '';
 
-        return res.status(200).json({message: "Get cart successfully.", cart});
+        const user = await User.findById(req.userId);
+        if (!user) {
+            return res.status(404).json({ message: "User not found." });
+        }
+
+        let cart = user.cart || [];
+
+        if (search && search.trim()) {
+            const matchingProducts = await Product.find({
+                $or: [
+                    { title: { $regex: search.trim(), $options: 'i' } },
+                    { category: { $regex: search.trim(), $options: 'i' } },
+                    { description: { $regex: search.trim(), $options: 'i'}}
+                ]
+            }).select('_id');
+
+            const matchingProductIds = matchingProducts.map(p => p._id.toString());
+            
+            cart = cart.filter(item => 
+                matchingProductIds.includes(item.productId.toString())
+            );
+        }
+
+        const total = cart.length;
+        const paginatedCart = cart.slice(skip, skip + limit);
+
+        const populatedCart = await User.populate(
+            { cart: paginatedCart },
+            { 
+                path: 'cart.productId',
+                select: 'title description price image category stock'
+            }
+        );
+
+        if (paginatedCart.length === 0) {
+            return res.status(200).json({
+                message: "Cart is empty or no products found.",
+                cart: [],
+                pagination: { total: 0, page, limit, totalPages: 0 }
+            });
+        }
+
+        return res.status(200).json({
+            message: "Get cart successfully.",
+            cart: populatedCart.cart,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit)
+            }
+        });
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'getCart:', err});
+        res.status(500).json({ message: 'getCart:', error: err.message });
     }
 }
 
@@ -38,7 +92,7 @@ const addToCart = async (req, res, next) => {
         user.cart = cart;
         await user.save();
 
-        return res.status(200).json({message: "Product added to cart successfully.", cart});
+        return res.status(200).json({message: "Product added to cart successfully."});
 
     } catch (err) {
         console.log(err);
@@ -66,7 +120,7 @@ const deleteItemFromCart = async (req, res, next) => {
     
         await user.save();
 
-        return res.status(200).json({message: "Cart item deleted successfully.", cart: user.cart});
+        return res.status(200).json({message: "Cart item deleted successfully."});
 
     } catch (err) {
         console.log(err);
@@ -94,7 +148,7 @@ const putUpdateItemFromCart = async (req, res, next) => {
         user.cart = cart;
         await user.save();
 
-        return res.status(200).json({message: "Cart item updated successfully", cart: user.cart});
+        return res.status(200).json({message: "Cart item updated successfully"});
 
     } catch (err) {
         console.log(err);

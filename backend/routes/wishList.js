@@ -4,7 +4,9 @@ import isAuth from '../middleware/isAuth.js';
 
 const router = express.Router();
 
-router.get('/:wishListId', isAuth, wishListController.getWishLists);
+router.get('/:wishListId', isAuth, wishListController.getWishList);
+
+router.get('/', isAuth, wishListController.getWishLists);
 
 router.post('/', isAuth, wishListController.postWishList);
 

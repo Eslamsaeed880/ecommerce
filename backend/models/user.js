@@ -61,13 +61,8 @@ const userSchema = new Schema({
                 default: 1
             }
         }
-    ],
-    createdAt: {
-        type: Date,
-        required: true,
-        default: Date.now()
-    }
-}, {minimize: false});
+    ]
+}, {minimize: false, timestamps: true});
 
 const user = mongoose.model('User', userSchema);
 

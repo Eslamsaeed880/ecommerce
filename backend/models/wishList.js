@@ -24,11 +24,6 @@ const wishListSchema = new Schema({
     description: {
         type: String,
         required: false
-    },
-    createdAt: {
-        type: Date,
-        required: true,
-        default: Date.now
     }
 }, {timestamps: true});
 

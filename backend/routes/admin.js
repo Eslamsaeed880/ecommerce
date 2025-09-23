@@ -40,6 +40,8 @@ router.get('/orders', adminAuth, adminController.getOrders);
 
 router.put('/order/status/:orderId', adminAuth, adminController.updateOrderStatus);
 
-router.get('/', adminAuth, adminController.getProducts);
+router.get('/', adminAuth, adminController.getMyProducts);
+
+router.get('/products', adminAuth, adminController.getAllProducts);
 
 export default router;

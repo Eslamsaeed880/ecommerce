@@ -20,15 +20,35 @@ const postWishList = async (req, res, next) => {
     }
 };
 
-const getWishLists = async (req, res, next) => {
+const getWishList = async (req, res, next) => {
     try {
-        const {wishListId} = req.query;
-        const wishLists = await WishList.findById(wishListId);
+        const {wishListId} = req.params;
+        const userId = req.userId;
+        const wishList = await WishList.findOne({_id: wishListId, userId})
+            .populate({
+                path: 'products.productId',
+                populate: {
+                    path: 'userId',
+                    select: 'name'
+                }
+            });
 
-        return res.status(200).json({message: "Get wishlist successfully", wishLists});
+        return res.status(200).json({message: "Get wishlist successfully", wishList});
     } catch (err) {
         console.log(err);
         res.status(500).json({message: "getWishList", error: err.message});
+    }
+}
+
+const getWishLists = async (req, res, next) => {
+    try {
+        const userId = req.userId;
+        const wishLists = await WishList.find({userId}).select('_id name');
+
+        return res.status(200).json({message: "Wishlists got successfully.", wishLists});
+    } catch (err) {
+        console.log(err);
+        res.status(500).json({message: "getWishLists", error: err.message});
     }
 }
 
@@ -145,7 +165,8 @@ const deleteWishList = async (req, res, next) => {
 };
 
 export default {
-    getWishLists, 
+    getWishList, 
+    getWishLists,
     postAddProductToWishList, 
     putWishList, 
     postWishList, 

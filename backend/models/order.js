@@ -37,13 +37,8 @@ const orderSchema = new Schema({
         type: Boolean,
         required: true,
         default: false
-    },
-    date: {
-        type: Date,
-        required: true,
-        default: Date.now()
     }
-}, {minimize: false});
+}, {minimize: false, timestamps: true});
 
 const order = mongoose.model('Order', orderSchema);
 

@@ -30,19 +30,15 @@ const productSchema = new Schema({
     },
     userId: {
         type: mongoose.Types.ObjectId,
+        ref: 'User',
         required: false
     },
     stock: {
         type: Number,
         required: true,
         min: 0
-    },
-    date: {
-        type: Date,
-        required: true,
-        default: Date.now()
     }
-});
+}, {timestamps: true});
 
 const product = mongoose.model("Product", productSchema);
 
