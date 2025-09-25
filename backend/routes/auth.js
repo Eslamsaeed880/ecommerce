@@ -2,7 +2,7 @@ import express from 'express';
 import authController from '../controllers/auth.js';
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
-import { loginValidation, signupValidation } from '../middleware/authValidation.js';
+import { loginValidation, signupValidation } from '../validation/authValidation.js';
 
 const router = express.Router();
 

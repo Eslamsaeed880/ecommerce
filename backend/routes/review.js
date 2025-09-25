@@ -7,7 +7,7 @@ import {
     getUserReviewsValidator, 
     getProductReviewsValidator, 
     updateUserReviewValidator 
-} from '../middleware/reviewValidation.js';
+} from '../validation/reviewValidation.js';
 
 const router = express.Router();
 

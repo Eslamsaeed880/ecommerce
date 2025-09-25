@@ -5,7 +5,7 @@ import {
     addToCartValidator, 
     deleteItemFromCartValidator, 
     updateItemFromCartValidator
-} from '../middleware/cartValidation.js';
+} from '../validation/cartValidation.js';
 
 const router = express.Router();
 
