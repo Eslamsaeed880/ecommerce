@@ -1,4 +1,4 @@
-import { body, check, param } from 'express-validator';
+import { body, param } from 'express-validator';
 import User from '../models/user.js'
 
 export const addToCartValidator = [

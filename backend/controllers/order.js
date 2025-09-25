@@ -2,62 +2,120 @@ import Order from '../models/order.js';
 import User from '../models/user.js';
 import Stripe from 'stripe';
 import Product from '../models/product.js';
+import { validationResult } from 'express-validator';
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 const currency = 'usd';
 const deliveryCharges = 10;
 
-function getOutOfStockItems(cart) {
-    return cart.filter(item => {
-        const stock = +item.productId.stock;
-        const quantity = +item.quantity;
-        return quantity >= stock;
+function validateStock(cart) {
+    const outOfStockItems = cart.filter(item => {
+        const stock = Number(item.productId.stock) || 0;
+        const quantity = Number(item.quantity) || 0;
+        return quantity > stock;
     });
+    return outOfStockItems;
 }
-
-
 
 const getUserOrders = async (req, res, next) => {
     try {
         const userId = req.userId;
-        const orders = await Order.find({userId});
+        const page = +req.query.page || 1;
+        const limit = +req.query.limit || 10;
+        const skip = (page - 1) * limit;
+        const status = req.query.status; 
 
-        return res.status(200).json({message: "Get orders successfully.", orders});
+        let query = { userId };
+        if (status && status.trim() !== '') {
+            query.status = status;
+        }
+
+        const orders = await Order.find(query)
+            .sort({ createdAt: -1 })
+            .skip(skip)
+            .limit(limit)
+            .populate('products.productId', 'title price image');
+
+        const total = await Order.countDocuments(query);
+
+        return res.status(200).json({
+            message: "Get orders successfully.", 
+            orders,
+            pagination: {
+                total,
+                page,
+                limit,
+                totalPages: Math.ceil(total / limit),
+                hasNextPage: page < Math.ceil(total / limit),
+                hasPrevPage: page > 1
+            },
+            filters: { status }
+        });
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'getUserOrders: ', err});
+        res.status(500).json({message: 'getUserOrders', error: err.message});
     }
 }
 
 const addOrder = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const {address} = req.body;
         const paymentMethod = "COD";
         const userId = req.userId;
         const user = await User.findById(userId).populate('cart.productId');
+        
+        if (!user) {
+            return res.status(404).json({message: "User not found."});
+        }
+
         const cart = user.cart;
 
         if(cart.length === 0) {
             return res.status(400).json({message: "Cart is empty."});
         }
 
-        const newCart = getOutOfStockItems(cart);
-
-        if(newCart.length !== cart.length) {
-            return res.status(400).json({message: "There's a problem in quantity of products in cart"});
+        const outOfStockItems = validateStock(cart);
+        if(outOfStockItems.length > 0) {
+            const itemNames = outOfStockItems.map(item => item.productId.title).join(', ');
+            return res.status(400).json({
+                message: `The following items are out of stock: ${itemNames}`
+            });
         }
-    
-        user.cart = [];
-        
-        await user.save();
 
-        const order = new Order({userId, address, paymentMethod, products: cart});
+        let totalAmount = 0;
+        const orderProducts = cart.map(item => {
+            const price = Number(item.productId.price);
+            const quantity = Number(item.quantity);
+            totalAmount += price * quantity;
+            
+            return {
+                productId: item.productId._id,
+                quantity: quantity,
+                price: price
+            };
+        });
+
+        totalAmount += deliveryCharges;
+
+        const order = new Order({
+            userId, 
+            address, 
+            paymentMethod, 
+            products: orderProducts,
+            totalAmount,
+            payment: false 
+        });
 
         await order.save();
 
         for (const item of cart) {
-            const product = await Product.findById(item.productId._id || item.productId);
+            const product = await Product.findById(item.productId._id);
             if (product) {
                 const currentStock = Number(product.stock) || 0;
                 const qty = Number(item.quantity) || 1;
@@ -65,54 +123,95 @@ const addOrder = async (req, res, next) => {
                 await product.save();
             }
         }
+
+        user.cart = [];
+        await user.save();
     
-        return res.status(200).json({message: "Order placed successfully."});
+        return res.status(201).json({
+            message: "Order placed successfully.",
+            orderId: order._id
+        });
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'addOrder:', err});
+        res.status(500).json({message: 'addOrder: ' + err.message});
     }
-
 }
 
 const addOrderStripe = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const {address} = req.body;
         const paymentMethod = "Stripe";
         const userId = req.userId;
         const user = await User.findById(userId).populate('cart.productId');
+        
+        if (!user) {
+            return res.status(404).json({message: "User not found."});
+        }
+
         const cart = user.cart;
 
         if(cart.length === 0) {
             return res.status(400).json({message: "Cart is empty."});
         }
-        
-        const newCart = getOutOfStockItems(cart);
 
-        if(newCart.length !== cart.length) {
-            return res.status(400).json({message: "There's a problem in quantity of products in cart"});
+        const outOfStockItems = validateStock(cart);
+        if(outOfStockItems.length > 0) {
+            const itemNames = outOfStockItems.map(item => item.productId.title).join(', ');
+            return res.status(400).json({
+                message: `The following items are out of stock: ${itemNames}`
+            });
         }
 
+        let totalAmount = 0;
+        const orderProducts = cart.map(item => {
+            const price = Number(item.productId.price);
+            const quantity = Number(item.quantity);
+            totalAmount += price * quantity;
+            
+            return {
+                productId: item.productId._id,
+                quantity: quantity,
+                price: price
+            };
+        });
+
+        totalAmount += deliveryCharges;
+
         const origin = req.headers.origin || `http://localhost:${process.env.PORT || 4000}`;
-        const order = new Order({userId, address, paymentMethod, products: cart});
+        
+        const order = new Order({
+            userId, 
+            address, 
+            paymentMethod, 
+            products: orderProducts, 
+            totalAmount,
+            payment: false 
+        });
     
         await order.save();
 
         const line_items = cart.map((item, idx) => {
             const product = item.productId;
-
             const price = Number(product.price);
             const name = product.title || `Product ${idx + 1}`;
+            
             if (isNaN(price)) {
-                throw new Error(`Invalid price for cart item: ${JSON.stringify(item)}`);
+                throw new Error(`Invalid price for product: ${name}`);
             }
+            
             return {
                 price_data: {
                     currency: currency,
                     product_data: { name },
                     unit_amount: Math.round(price * 100)
                 },
-                quantity: item.quantity || 1
+                quantity: Number(item.quantity) || 1
             };
         });
 
@@ -128,17 +227,17 @@ const addOrderStripe = async (req, res, next) => {
         });
 
         const session = await stripe.checkout.sessions.create({
-            success_url: `${origin}/api/verify?success=true&orderId=${order._id}`,
-            cancel_url: `${origin}/api/verify?success=false&orderId=${order._id}`,
+            success_url: `${origin}/api/order/verify-stripe?success=true&orderId=${order._id}`,
+            cancel_url: `${origin}/api/order/verify-stripe?success=false&orderId=${order._id}`,
             line_items,
             mode: 'payment',
         });
 
-        res.json({message:true, session_url: session.url});
+        res.json({message: "Stripe session created", session_url: session.url});
 
     } catch (err) {
-        console.log(err)
-        res.status(500).json({message: "addOrderStripe", err})
+        console.log(err);
+        res.status(500).json({message: "addOrderStripe: " + err.message});
     }
 }
 
@@ -147,10 +246,14 @@ const verifyStripe = async (req, res, next) => {
 
     try {
         if (success === "true") {
-            const order = await Order.findByIdAndUpdate(orderId, { payment: true });
+            const order = await Order.findByIdAndUpdate(orderId, { 
+                payment: true,
+                status: 'processing' 
+            });
+            
             if (order && order.products && order.products.length > 0) {
                 for (const item of order.products) {
-                    const product = await Product.findById(item.productId._id || item.productId);
+                    const product = await Product.findById(item.productId); 
                     if (product) {
                         const currentStock = Number(product.stock) || 0;
                         const qty = Number(item.quantity) || 1;
@@ -158,16 +261,18 @@ const verifyStripe = async (req, res, next) => {
                         await product.save();
                     }
                 }
+                
                 await User.findByIdAndUpdate(order.userId, { cart: [] });
             }
-            res.json({ message: "Payment success."});
+            
+            res.json({ message: "Payment successful", orderId });
         } else {
             await Order.findByIdAndDelete(orderId);
-            res.json({ message: "Payment method doesn't success." });
+            res.json({ message: "Payment cancelled" });
         }
     } catch (err) {
         console.log("verifyStripe: ", err);
-        res.json({ message: err });
+        res.status(500).json({ message: "Verification error: " + err.message });
     }
 }
 
