@@ -349,9 +349,43 @@ const updateOrderStatus = async (req, res, next) => {
             return res.status(400).json({ message: "Cannot change status of completed orders." });
         }
 
+        if (status === 'refund') {
+            if (order.status !== 'delivered') {
+                return res.status(400).json({ message: "Can only refund delivered orders." });
+            }
+            
+            for (const item of order.products) {
+                await Product.findByIdAndUpdate(
+                    item.productId,
+                    { $inc: { stock: item.quantity } }
+                );
+            }
+        }
+
+        if (status === 'cancelled' && ['pending', 'processing'].includes(order.status)) {
+            for (const item of order.products) {
+                await Product.findByIdAndUpdate(
+                    item.productId,
+                    { $inc: { stock: item.quantity } }
+                );
+            }
+        }
+
+        order.status = status;
+        await order.save();
+
+        const updatedOrder = await Order.findById(orderId)
+            .populate('userId', 'name email')
+            .populate('products.productId', 'title price');
+
+        return res.status(200).json({
+            message: `Order status updated to ${status} successfully`,
+            order: updatedOrder
+        });
+
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: "updateOrderStatus:", err });
+        res.status(500).json({ message: "updateOrderStatus: " + err.message });
     }
 }
 

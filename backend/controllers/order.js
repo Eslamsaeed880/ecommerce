@@ -66,7 +66,7 @@ const addOrder = async (req, res, next) => {
             }
         }
     
-        return res.status(200).json({message: "Order placed successfully.", order});
+        return res.status(200).json({message: "Order placed successfully."});
 
     } catch (err) {
         console.log(err);
@@ -160,7 +160,7 @@ const verifyStripe = async (req, res, next) => {
                 }
                 await User.findByIdAndUpdate(order.userId, { cart: [] });
             }
-            res.json({ message: "Payment success.", order });
+            res.json({ message: "Payment success."});
         } else {
             await Order.findByIdAndDelete(orderId);
             res.json({ message: "Payment method doesn't success." });

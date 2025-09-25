@@ -7,10 +7,10 @@ const router = express.Router();
 
 router.get('/orders', isAuth, orderController.getUserOrders);
 
-router.post('/order', isAuth, orderController.addOrder);
+router.post('/', isAuth, orderController.addOrder);
 
-router.post('/order-stripe', isAuth, orderController.addOrderStripe);
+router.post('/stripe', isAuth, orderController.addOrderStripe);
 
-router.get('/verify', orderController.verifyStripe);
+router.get('/verify-stripe', orderController.verifyStripe);
 
 export default router;
