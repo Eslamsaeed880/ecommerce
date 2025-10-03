@@ -50,8 +50,7 @@ const postReview = async (req, res, next) => {
         const review = new Review({productId, comment, rating, comment, userId});
         await review.save();
 
-        return res.status(200).json({message: "review posted successfully"});
-
+        return res.status(201).json({message: "review posted successfully"});
     } catch (err) {
         res.status(500).json({message: "postReview", errror: err.message});
     }
@@ -87,8 +86,7 @@ const deleteUserReview = async (req, res, next) => {
         const review = await Review.findById(reviewId);
         await Review.deleteOne(review);
 
-        return res.status(200).json({message: "Review deleted successfully"});
-
+        return res.status(204).send();
     } catch (err) {
         res.status(500).json({message: "deleteUserReview", errror: err.message});
     }

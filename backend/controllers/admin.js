@@ -36,7 +36,7 @@ const getAllProducts = async (req, res, next) => {
         const total = await Product.countDocuments(query);
 
         if (products.length === 0) {
-            return res.status(200).json({ 
+            return res.status(404).json({ 
                 message: 'No products found', 
                 products: [],
                 pagination: { total: 0, page, limit, totalPages: 0 }
@@ -94,7 +94,7 @@ const getMyProducts = async (req, res, next) => {
         const total = await Product.countDocuments(query);
 
         if (products.length === 0) {
-            return res.status(200).json({ 
+            return res.status(404).json({ 
                 message: 'You have no products', 
                 products: [],
                 pagination: { total: 0, page, limit, totalPages: 0 }
@@ -259,8 +259,8 @@ const deleteProduct = async (req, res, next) => {
 
         await Product.findByIdAndDelete(productId);
 
-        return res.status(200).json({ message: "Product deleted successfully" });
-        
+        return res.status(204).send();
+
     } catch (err) {
         console.log(err);
         res.status(500).json({message: 'deleteProduct: ' + err.message});

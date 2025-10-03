@@ -36,7 +36,6 @@ const getProducts = async (req, res, next) => {
             },
             search: search || null
         });
-
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: 'getProducts:', err });
@@ -47,12 +46,15 @@ const getProduct = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
-            return res.status(422).json({message: errors.array()});
+            return res.status(400).json({message: errors.array()});
         }
         
         const productId = req.params.productId;
         const product = await Product.findById(productId);
 
+        if (!product) {
+            return res.status(404).json({message: "Product not found."});
+        }
         res.status(200).json({message: "Open product page successfully.", product});
     } catch (err) {
         console.log(err);

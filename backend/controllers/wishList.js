@@ -87,7 +87,7 @@ const postAddProductToWishList = async (req, res, next) => {
             wishList = oldestWishList;
         }
 
-        return res.status(200).json({ message: "Product added to wishlist successfully", wishList });
+        return res.status(201).json({ message: "Product added to wishlist successfully", wishList });
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "addProductToWishList", error: err.message });
@@ -151,7 +151,7 @@ const deleteProductFromWishList = async (req, res, next) => {
         );
 
         await wishList.save();
-        return res.status(200).json({ message: "Product from wishlist deleted successfully.", wishList });
+        return res.status(204).send();
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "deleteProductFromWishList", error: err.message });
@@ -168,7 +168,7 @@ const deleteWishList = async (req, res, next) => {
         const { wishListId } = req.params;
         await WishList.deleteOne({ _id: wishListId });
 
-        return res.status(200).json({ message: "Wishlist deleted successfully." });
+        return res.status(204).send();
     } catch (err) {
         console.log(err);
         res.status(500).json({ message: "deleteWishList", error: err.message });

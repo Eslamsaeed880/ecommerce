@@ -18,11 +18,18 @@ const postLogin = async (req, res, next) => {
     try {
         const errors = validationResult(req);
         if(!errors.isEmpty()) {
-            return res.status(422).json({message: errors.array()});
+            return res.status(400).json({message: errors.array()});
         }
         
         const { email, password } = req.body;
         const userExists = await User.findOne({email});
+        if (!userExists) {
+            return res.status(401).json({message: "Invalid email or password."});
+        }
+        const isMatch = await bcrypt.compare(password, userExists.password);
+        if (!isMatch) {
+            return res.status(401).json({message: "Invalid email or password."});
+        }
 
         const token = jwt.sign(
             {
@@ -32,7 +39,7 @@ const postLogin = async (req, res, next) => {
             { expiresIn: "1h" }
         );
         
-        res.json({message: "You logged in successfully.", token, userId: userExists._id.toString()});
+        res.status(200).json({message: "You logged in successfully.", token, userId: userExists._id.toString()});
         
     } catch (err) {
         console.log(err);
@@ -52,35 +59,37 @@ const postSignup = async (req, res, next) => {
         const { firstName, lastName, email, password } = req.body;
         const userExists = await User.findOne({ email: email });
         
-        if (!userExists) {
-            const name = firstName.trim() + ' ' + lastName.trim();
-            const saltRounds = parseInt(process.env.SALT_ROUNDS);
-            const hashedPassword = await bcrypt.hash(password, saltRounds);
-            
-            const user = new User({ name, email, password: hashedPassword });
-
-            await user.save();
-
-            await transporter.sendMail({
-                to: email,
-                from: process.env.EMAIL_SENDER,
-                subject: 'Signup succeeded!',
-                html: '<h1>You successfully signed up!</h1>'
-            }, (err, info) => {
-                if(!err) {
-                    console.log("Email Sent Successfully");
-                }
-            });
-            
-            const defaultWishList = new WishList({
-                name: 'Default',
-                userId: user._id,
-                products: []
-            });
-            await defaultWishList.save();
-            
-            return res.status(200).json({ message: "User Created successfully", user: user});
+        if (userExists) {
+            return res.status(409).json({ message: "User already exists." });
         }
+        
+        const name = firstName.trim() + ' ' + lastName.trim();
+        const saltRounds = parseInt(process.env.SALT_ROUNDS);
+        const hashedPassword = await bcrypt.hash(password, saltRounds);
+        
+        const user = new User({ name, email, password: hashedPassword });
+
+        await user.save();
+
+        await transporter.sendMail({
+            to: email,
+            from: process.env.EMAIL_SENDER,
+            subject: 'Signup succeeded!',
+            html: '<h1>You successfully signed up!</h1>'
+        }, (err, info) => {
+            if(!err) {
+                console.log("Email Sent Successfully");
+            }
+        });
+        
+        const defaultWishList = new WishList({
+            name: 'Default',
+            userId: user._id,
+            products: []
+        });
+        await defaultWishList.save();
+        
+        return res.status(201).json({ message: "User Created successfully", user: user});
         
     } catch (err) {
         console.log(err);

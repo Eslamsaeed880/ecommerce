@@ -131,7 +131,6 @@ const addOrder = async (req, res, next) => {
             message: "Order placed successfully.",
             orderId: order._id
         });
-
     } catch (err) {
         console.log(err);
         res.status(500).json({message: 'addOrder: ' + err.message});
@@ -233,7 +232,7 @@ const addOrderStripe = async (req, res, next) => {
             mode: 'payment',
         });
 
-        res.json({message: "Stripe session created", session_url: session.url});
+        res.status(201).json({message: "Stripe session created", session_url: session.url});
 
     } catch (err) {
         console.log(err);
@@ -243,7 +242,6 @@ const addOrderStripe = async (req, res, next) => {
 
 const verifyStripe = async (req, res, next) => {
     const { orderId, success } = req.query;
-
     try {
         if (success === "true") {
             const order = await Order.findByIdAndUpdate(orderId, { 
@@ -265,10 +263,10 @@ const verifyStripe = async (req, res, next) => {
                 await User.findByIdAndUpdate(order.userId, { cart: [] });
             }
             
-            res.json({ message: "Payment successful", orderId });
+            res.status(200).json({ message: "Payment successful", orderId });
         } else {
             await Order.findByIdAndDelete(orderId);
-            res.json({ message: "Payment cancelled" });
+            res.status(204).send();
         }
     } catch (err) {
         console.log("verifyStripe: ", err);

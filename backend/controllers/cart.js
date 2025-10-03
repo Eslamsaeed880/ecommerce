@@ -92,7 +92,7 @@ const addToCart = async (req, res, next) => {
         user.cart = cart;
         await user.save();
 
-        return res.status(200).json({message: "Product added to cart successfully."});
+        return res.status(201).json({message: "Product added to cart successfully."});
 
     } catch (err) {
         console.log(err);
@@ -119,8 +119,7 @@ const deleteItemFromCart = async (req, res, next) => {
         user.cart = cart;
     
         await user.save();
-
-        return res.status(200).json({message: "Cart item deleted successfully."});
+        return res.status(204).send();
 
     } catch (err) {
         console.log(err);

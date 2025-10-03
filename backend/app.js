@@ -13,9 +13,15 @@ import passport from './middleware/googleAuth.js';
 import reviewRouter from './routes/review.js';
 import helmet from 'helmet';
 import rateLimit from 'express-rate-limit';
+import YAML from 'yamljs';
+import swagger from 'swagger-ui-express';
+
+const swaggerDocument = YAML.load('./swagger.yaml');
 
 const app = express();
 const port = process.env.PORT || 4000;
+
+app.use('/api-docs', swagger.serve, swagger.setup(swaggerDocument));
 
 connectDb();
 connectCloudinary();
@@ -51,7 +57,15 @@ app.use('/api/order', orderRouter);
 app.use('/api', productRouter);
 
 app.get('/', (req, res) => {
-    res.status(200).json({message: 'API is working'});
+    res.status(200).json({
+        message: 'E-commerce API is working!',
+        documentation: `http://localhost:${port}/api-docs`,
+        version: '1.0.0',
+        endpoints: {
+            docs: '/api-docs',
+            swagger_json: '/api-docs.json'
+        }
+    });
 });
 
 app.use((err, req, res, next) => {
@@ -59,4 +73,8 @@ app.use((err, req, res, next) => {
     res.status(500).json({ message: 'Something went wrong!' });
 });
 
-app.listen(port, () => console.log('Server started on port: ' + port));
+app.listen(port, () => {
+    console.log(`🚀 Server started on port: ${port}`);
+    console.log(`📚 API Documentation: http://localhost:${port}/api-docs`);
+    console.log(`📋 Swagger JSON: http://localhost:${port}/api-docs.json`);
+});
