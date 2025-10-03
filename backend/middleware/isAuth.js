@@ -1,15 +1,18 @@
 import jwt from 'jsonwebtoken';
+import User from '../models/user.js';
 
 const isAuth = async (req, res, next) => {
     try {
         const authHeader = req.get('Authorization');
         if(!authHeader) {
-            const error = new Error('Not Authorized.');
-            error.statusCode = 401;
-            throw error;
+            return res.status(401).json({ message: 'Not Authorized.' });
         }
 
         const token = authHeader.split(' ')[1];
+        if(!token) {
+            return res.status(401).json({ message: 'Not Authorized.' });
+        }
+
         let decodedToken;
         
         try {
@@ -21,18 +24,21 @@ const isAuth = async (req, res, next) => {
             return res.status(401).json({ message: 'Not Authorized.' });
         }
         
-        if(!decodedToken) {
-            const error = new Error('Not Authorized.');
-            error.statusCode = 401;
-            throw error;
+        if(!decodedToken || !decodedToken.userId) {
+            return res.status(401).json({ message: 'Not Authorized.' });
+        }
+
+        const userExists = await User.findById(decodedToken.userId);
+        if (!userExists) {
+            return res.status(401).json({ message: 'User not found. Please login again.' });
         }
         
         req.userId = decodedToken.userId;
         next();
         
     } catch (err) {
-        err.statusCode = 500;
-        throw err;
+        console.error('Auth error:', err);
+        return res.status(500).json({ message: 'Authentication error.' });
     }
 }
 

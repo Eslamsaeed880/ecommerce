@@ -3,9 +3,15 @@ import {v2 as cloudinary} from 'cloudinary';
 import WishList from '../models/wishList.js';
 import Order from '../models/order.js';
 import User from '../models/user.js';
+import { validationResult } from 'express-validator';
 
 const getAllProducts = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const page = +req.query.page || 1;
         const limit = +req.query.limit || 10;
         const skip = (page - 1) * limit;
@@ -50,12 +56,17 @@ const getAllProducts = async (req, res, next) => {
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: 'getProducts: ' + err.message });
+        res.status(500).json({ message: 'getAllProducts: ' + err.message });
     }
 }
 
 const getMyProducts = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const page = +req.query.page || 1;
         const limit = +req.query.limit || 10;
         const skip = (page - 1) * limit;
@@ -109,12 +120,12 @@ const getMyProducts = async (req, res, next) => {
 
 const postAddProduct = async (req, res, next) => {
     try {
-        const { title, description, price, category, subCategory, sizes, stock } = req.body;
-
-        if (!req.files) {
-            return res.status(400).json({ message: 'No files uploaded.' });
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
         }
 
+        const { title, description, price, category, subCategory, sizes, stock } = req.body;
 
         const image1 = req.files.image1 && req.files.image1[0];
         const image2 = req.files.image2 && req.files.image2[0];
@@ -122,10 +133,6 @@ const postAddProduct = async (req, res, next) => {
         const image4 = req.files.image4 && req.files.image4[0];
 
         const images = [image1, image2, image3, image4].filter(item => item !== undefined);
-
-        if (images.length === 0) {
-            return res.status(400).json({ message: 'At least one image file is required.' });
-        }
 
         let imagesUrl = await Promise.all(
             images.map(async (item) => {
@@ -143,13 +150,11 @@ const postAddProduct = async (req, res, next) => {
             subCategory, 
             sizes: JSON.parse(sizes), 
             userId: req.userId,
-            stock
+            stock: Number(stock)
         });
         await product.save();
 
-        console.log("Product added successfully");
-
-        return res.status(200).json({message: "Product added successfully", product});
+        return res.status(201).json({message: "Product added successfully", product});
 
     } catch (err) {
         console.log(err);
@@ -159,12 +164,17 @@ const postAddProduct = async (req, res, next) => {
 
 const getProduct = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const productId = req.params.productId;
     
         const product = await Product.findOne({_id: productId, userId: req.userId}).populate('userId', 'name');
     
         if(!product) {
-            return res.status(400).json({ message: 'Not Authorized.' });
+            return res.status(404).json({ message: 'Product not found or not authorized.' });
         }
     
         return res.status(200).json({message: 'Get product successfully.', product});
@@ -177,6 +187,11 @@ const getProduct = async (req, res, next) => {
 
 const putUpdateProduct = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const { title, description, price, category, subCategory, sizes, stock } = req.body;
         const productId = req.params.productId;
 
@@ -226,14 +241,20 @@ const putUpdateProduct = async (req, res, next) => {
 
 const deleteProduct = async (req, res, next) => {
     try {
-        const productId = req.params.productId
-        const product = await Product.findById(productId);
-        if(!product) {
-            return res.status(400).json({ message: 'There is no product.' });
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
         }
 
-        if(product.userId != req.userId) {
-            return res.status(400).json({ message: 'Not Authorized.' });
+        const productId = req.params.productId;
+        
+        const product = await Product.findById(productId);
+        if(!product) {
+            return res.status(404).json({ message: 'Product not found.' });
+        }
+
+        if(product.userId.toString() !== req.userId.toString()) {
+            return res.status(403).json({ message: 'Not authorized.' });
         }
 
         await Product.findByIdAndDelete(productId);
@@ -242,14 +263,16 @@ const deleteProduct = async (req, res, next) => {
         
     } catch (err) {
         console.log(err);
-        res.status(500).json({message: 'deleteProduct' ,error: err.message});
+        res.status(500).json({message: 'deleteProduct: ' + err.message});
     }
 }
 
 const getWishLists = async (req, res, next) => {
     try {
         const wishLists = await WishList.find()
-            .sort({ createdAt: -1 });
+            .sort({ createdAt: -1 })
+            .populate('userId', 'name email')
+            .populate('products.productId', 'title price image');
 
         if (wishLists.length === 0) {
             return res.status(200).json({ 
@@ -265,12 +288,17 @@ const getWishLists = async (req, res, next) => {
 
     } catch (err) {
         console.log(err);
-        res.status(500).json({ message: 'getWishLists', error: err.message });
+        res.status(500).json({ message: 'getWishLists: ' + err.message });
     }
 }
 
 const getOrders = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const page = +req.query.page || 1;
         const limit = +req.query.limit || 15;
         const skip = (page - 1) * limit;
@@ -332,13 +360,13 @@ const getOrders = async (req, res, next) => {
 
 const updateOrderStatus = async (req, res, next) => {
     try {
+        const errors = validationResult(req);
+        if(!errors.isEmpty()) {
+            return res.status(400).json({errors: errors.array()});
+        }
+
         const { status } = req.body;
         const { orderId } = req.params;
-
-        const validStatuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled', 'refund'];
-        if (!validStatuses.includes(status)) {
-            return res.status(400).json({ message: "Invalid order status." });
-        }
 
         const order = await Order.findById(orderId);
         if (!order) {

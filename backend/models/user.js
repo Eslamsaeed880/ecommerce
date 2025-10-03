@@ -26,7 +26,7 @@ const userSchema = new Schema({
     },
     gender: {
         type: String,
-        enum: ['male', 'femal'],
+        enum: ['male', 'female'],
         required: false
     },
     Nationality: {
@@ -46,6 +46,7 @@ const userSchema = new Schema({
     role: {
         type: String,
         required: true,
+        enum: ['user', 'admin'],
         default: 'user'
     },
     cart: [

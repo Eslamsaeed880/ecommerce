@@ -1,41 +1,26 @@
-import jwt from 'jsonwebtoken';
 import User from '../models/user.js';
 
 const adminAuth = async (req, res, next) => {
     try {
-        const authHeader = req.get('Authorization');
-        if(!authHeader) {
-            const error = new Error('Not Authorized.');
-            error.statusCode = 400;
-            throw error;
+        if (!req.userId) {
+            return res.status(401).json({ message: 'Authentication required.' });
         }
-
-        const token = authHeader.split(' ')[1];
-        let decodedToken;
-        
-        decodedToken = jwt.verify(token, process.env.JWT_SECRET_KEY);
-        
-        if(!decodedToken) {
-            const error = new Error('Not Authorized.');
-            error.statusCode = 400;
-            throw error;
-        }
-        
-        console.log(decodedToken);
-        req.userId = decodedToken.userId;
 
         const user = await User.findById(req.userId);
 
-        if(!user || user.role !== 'admin') {
-            const error = new Error('Not Authorized.');
-            error.statusCode = 400;
-            throw error;
+        if (!user) {
+            return res.status(401).json({ message: 'User not found.' });
         }
 
-        next();
+        if (user.role !== 'admin') {
+            return res.status(403).json({ message: 'Admin access required.' });
+        }
+
+        req.user = user;
+        next();       
     } catch (err) {
-        err.statusCode = 500;
-        throw err;
+        console.error('Admin auth error:', err);
+        return res.status(500).json({ message: 'Authorization error.' });
     }
 }
 
