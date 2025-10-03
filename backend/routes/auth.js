@@ -2,7 +2,7 @@ import express from 'express';
 import authController from '../controllers/auth.js';
 import passport from '../middleware/googleAuth.js';
 import jwt from 'jsonwebtoken'; 
-import { loginValidation, signupValidation } from '../validation/authValidation.js';
+import { confirmResetPasswordValidator, loginValidation, resetPasswordValidator, signupValidation } from '../validation/authValidation.js';
 
 const router = express.Router();
 
@@ -28,5 +28,9 @@ router.get(
 router.post('/login', loginValidation, authController.postLogin);
 
 router.post('/signup', signupValidation, authController.postSignup);
+
+router.post('/reset-password', resetPasswordValidator, authController.resetPassword);
+
+router.post('/confirm-reset-password/', confirmResetPasswordValidator, authController.confirmResetPassword);
 
 export default router;
