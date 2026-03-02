@@ -2,30 +2,6 @@
 
 A comprehensive and secure RESTful API for an ecommerce platform built with Node.js, Express.js, and MongoDB. This API provides complete functionality for user management, product catalog, shopping cart, order processing, and administrative features.
 
-![Ecommerce API](images/image1.png)
-![Ecommerce API](images/image2.png)
-![Ecommerce API](images/image3.png)
-![Ecommerce API](images/image4.png)
-
-![Node.js](https://img.shields.io/badge/Node.js-43853D?style=for-the-badge&logo=node.js&logoColor=white)
-![Express.js](https://img.shields.io/badge/Express.js-404D59?style=for-the-badge)
-![MongoDB](https://img.shields.io/badge/MongoDB-4EA94B?style=for-the-badge&logo=mongodb&logoColor=white)
-![JWT](https://img.shields.io/badge/JWT-black?style=for-the-badge&logo=JSON%20web%20tokens)
-
-## 📋 Table of Contents
-
-- [Features](#features)
-- [Tech Stack](#tech-stack)
-- [Prerequisites](#prerequisites)
-- [Installation](#installation)
-- [Environment Variables](#environment-variables)
-- [Usage](#usage)
-- [API Documentation](#api-documentation)
-- [Project Structure](#project-structure)
-- [Security Features](#security-features)
-- [Payment Integration](#payment-integration)
-- [Contributing](#contributing)
-- [License](#license)
 
 ## ✨ Features
 
@@ -185,6 +161,14 @@ Access the interactive Swagger documentation at:
 ```
 http://localhost:4000/api-docs
 ```
+## 🖼️ Screenshots
+
+Below are screenshots from the docs/ folder:
+
+![Ecommerce API](images/image1.png)
+![Ecommerce API](images/image2.png)
+![Ecommerce API](images/image3.png)
+![Ecommerce API](images/image4.png)
 
 ## 📚 API Documentation
 
